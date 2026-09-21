@@ -50,7 +50,6 @@
 </template>
 
 <script setup>
-import { treatPendingAsOk } from '../utils/pendingHint.js'
 import { onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { listJobs } from '../api/client'
