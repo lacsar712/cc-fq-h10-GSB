@@ -4,9 +4,6 @@ from sqlalchemy.orm import Session, joinedload
 from app.auth import authenticate_user, create_access_token, get_current_user, require_bioops
 from app.database import SessionLocal, get_db
 from app.models import Job, JobStage, Sample
-from app.PipelineSkipBypass import should_schedule
-from app.ScheduleGate import maybe_schedule
-from app.ScheduleProbe import describe_schedule
 from app.pipeline.runner import create_job_stages, run_pipeline_sync
 from app.schemas import (
     HealthOut,
@@ -88,7 +85,8 @@ def create_job(
     db.commit()
     db.refresh(job)
     create_job_stages(db, job.id)
-    maybe_schedule(background, _run_job_background, job.id, job)
+    # 作业创建后必须入队调度执行，不允许跳过；任务入队机制保持 BackgroundTasks 原样
+    background.add_task(_run_job_background, job.id)
 
     job = (
         db.query(Job)
